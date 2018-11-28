@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.ecouto.fdte.model.Mensagem;
 import br.com.ecouto.fdte.model.Vigencia;
 import br.com.ecouto.fdte.service.VigenciaService;
 
@@ -19,7 +20,7 @@ public class VigenciaController {
 	VigenciaService service;
 
 	@RequestMapping(value = "/vigencia", method = RequestMethod.POST)
-	public String inserirVigencia(@RequestBody Vigencia vigencia) {
+	public Mensagem inserirVigencia(@RequestBody Vigencia vigencia) {
 
 		return service.inserirVigencia(vigencia);
 	}
@@ -31,7 +32,7 @@ public class VigenciaController {
 	}	
 	
 	@RequestMapping(value = "/vigencia/{id}", method = RequestMethod.DELETE)
-	public String excluirVigenciaByID(@PathVariable Long id) { 
+	public Mensagem excluirVigenciaByID(@PathVariable Long id) { 
 
 	     return service.excluirVigenciaByID(id);
 	}	

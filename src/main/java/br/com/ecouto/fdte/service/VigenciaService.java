@@ -6,29 +6,32 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import br.com.ecouto.fdte.model.Mensagem;
 import br.com.ecouto.fdte.model.Vigencia;
 import br.com.ecouto.fdte.repository.VigenciaRepository;
+import br.com.ecouto.fdte.utils.TipoMensagem;
 
 @Service
 public class VigenciaService {
 
-
+    
 	@Autowired
 	VigenciaRepository repository;
 	
-	public String inserirVigencia(Vigencia vigencia){
-		
-		String msg = "";
+	public Mensagem inserirVigencia(Vigencia vigencia){
+		Mensagem msg = new Mensagem();
 		Date dtInicioVigencia = vigencia.getDtInicioVigencia();
 		Date dtFinalVigencia = vigencia.getDtFinalVigencia();
 		if(dtInicioVigencia.after(dtFinalVigencia)) {
-			msg = "data de inicio de vigencia não pode ser maior que fim de vigencia";
+			msg.setTipo(TipoMensagem.DATA_INICIO_MAIOR_FIM);
+			msg.setMensagem("data de inicio de vigencia não pode ser maior que fim de vigencia");
 		}else {
 			Long count = repository.count();
 			count++;
 			vigencia.setId(count);	
 			repository.save(vigencia);
-			msg = "Vigencia inserida com sucesso";
+			msg.setTipo(TipoMensagem.SUCESSO);
+			msg.setMensagem("Vigencia inserida com sucesso");
 		}
 		return msg;
 	}
@@ -39,11 +42,13 @@ public class VigenciaService {
 		return repository.save(vigencia);	
 	}
 	
-    public String excluirVigenciaByID(Long id){
-		
+    public Mensagem excluirVigenciaByID(Long id){
+    	Mensagem msg = new Mensagem();
     	Vigencia consultaByID = consultaVigenciaByID(id);
 		repository.delete(consultaByID);	
-		return "Registro de vigencia excluido com sucesso!";
+		msg.setTipo(TipoMensagem.SUCESSO);
+		msg.setMensagem("Registro de vigencia excluido com sucesso!");
+		return msg;
 	}
     
     public Vigencia consultaVigenciaByID(Long id){
