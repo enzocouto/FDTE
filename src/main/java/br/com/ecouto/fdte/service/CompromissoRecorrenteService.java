@@ -3,6 +3,7 @@ package br.com.ecouto.fdte.service;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,12 +49,12 @@ public class CompromissoRecorrenteService {
 			msg.setMensagem("Compromissos recorrentes gerados com sucesso");
 		}
 		
-		
 		return msg;
 	}
 
 
 	private void gerar(Date dtInicio, Vigencia vigencia) {
+		
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		Date dtInicioVigencia = vigencia.getDtInicioVigencia();
 		Date dtFinalVigencia = vigencia.getDtFinalVigencia();
@@ -83,5 +84,11 @@ public class CompromissoRecorrenteService {
 	public void excluirTodosCompromissosDiarios() {
 		
 		compromissoRecorrenteRepository.deleteAll();
+	}
+
+
+	public List<CompromissoRecorrente> listarCompromissosDiario(Object object) {
+		
+		return compromissoRecorrenteRepository.findAll();
 	}
 }
