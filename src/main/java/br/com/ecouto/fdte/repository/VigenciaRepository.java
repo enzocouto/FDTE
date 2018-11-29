@@ -1,4 +1,4 @@
-package br.com.ecouto.fdte.repository;
+  package br.com.ecouto.fdte.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 

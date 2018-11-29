@@ -26,7 +26,7 @@ public class VigenciaController {
 	}
 	
 	@RequestMapping(value = "/vigencia", method = RequestMethod.PUT)
-	public Vigencia alterarVigencia(@RequestBody Vigencia vigencia) { 
+	public Mensagem alterarVigencia(@RequestBody Vigencia vigencia) { 
 
 		return service.alterarVigencia(vigencia);
 	}	

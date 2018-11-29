@@ -7,8 +7,10 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import br.com.ecouto.fdte.model.CompromissoRecorrente;
 import br.com.ecouto.fdte.model.Mensagem;
 import br.com.ecouto.fdte.model.Vigencia;
+import br.com.ecouto.fdte.repository.CompromissoRecorrenteRepository;
 import br.com.ecouto.fdte.repository.VigenciaRepository;
 import br.com.ecouto.fdte.utils.TipoMensagem;
 
@@ -18,40 +20,68 @@ public class CompromissoRecorrenteService {
 	@Autowired
 	VigenciaRepository vigenciaRepository;
 	
+	@Autowired
+	CompromissoRecorrenteRepository compromissoRecorrenteRepository;
 	
-	public Mensagem gerarCompromissoRecorrente(){
+	public Mensagem gerarCompromissoRecorrente(Vigencia vigencia){
 		Mensagem msg = new Mensagem();
+		
 		Calendar calendar = Calendar.getInstance();
-		//Retorna a primeira vigencia cadastrada
-		Vigencia vigencia = vigenciaRepository.findOne("1");
-		if(vigencia == null) {
+		//Deve ter ao menos uma vigencia cadastrada
+		Long qtdVigencia = vigenciaRepository.count();
+		if(qtdVigencia == 0) {
 			msg.setTipo(TipoMensagem.ERRO);
 			msg.setMensagem("Não existe vigencia cadastrada. É necessário pelo menos um período de vigência.");
+		}else {	
+			//Se o processo de gerar compromisso diario foi executado isoladadamente
+			//Retorna a ultima vigencia cadastrada
+			if(vigencia == null) {
+				vigencia = vigenciaRepository.findById(qtdVigencia);
+			}
+			//data de inicio d+1
+			calendar.add(Calendar.DAY_OF_MONTH, 1);
+			Date dtInicio = calendar.getTime();
+			
+			//Gerar compromisso recorrente
+		    gerar(dtInicio,vigencia);
+		    msg.setTipo(TipoMensagem.SUCESSO);
+			msg.setMensagem("Compromissos recorrentes gerados com sucesso");
 		}
 		
-		Date dtInicioVigencia = vigencia.getDtInicioVigencia();
-		Date dtFinalVigencia = vigencia.getDtFinalVigencia();
-		//data de inicio
-		calendar.add(Calendar.DAY_OF_MONTH, 1);
-		Date dtInicio = calendar.getTime();
 		
-		//Gerar compromisso recorrente
-	    gerarCompromissos(dtInicio,dtInicioVigencia,dtFinalVigencia);
-	    msg.setTipo(TipoMensagem.SUCESSO);
-		msg.setMensagem("Compromissos recorrentes gerados com sucesso");
 		return msg;
 	}
 
 
-	private void gerarCompromissos(Date dtInicio, Date dtInicioVigencia, Date dtFinalVigencia) {
+	private void gerar(Date dtInicio, Vigencia vigencia) {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-		Date dtCorrente = dtInicio;
+		Date dtInicioVigencia = vigencia.getDtInicioVigencia();
+		Date dtFinalVigencia = vigencia.getDtFinalVigencia();
+		
+		Long count = compromissoRecorrenteRepository.count();
+		
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(dtInicio);
 		//Gerar compromissos para os proximos 30 dias
 		for(int i = 0; i < 30; i++){
-			if(dtCorrente.after(dtInicio) && dtCorrente.before(dtFinalVigencia)) {
-				System.out.println("criando compromisso para:"+sdf.format(dtInicio));
+			if(cal.getTime().after(dtInicioVigencia) && cal.getTime().before(dtFinalVigencia)) {
+				System.out.println("criando compromisso para:"+sdf.format(cal.getTime()));	
+				CompromissoRecorrente compromissoRecorrente = new CompromissoRecorrente();
+				compromissoRecorrente.setId(count);
+				compromissoRecorrente.setDataCompromisso(cal.getTime());
+				compromissoRecorrente.setHorarioInicio(vigencia.getHorarioInicio());
+				compromissoRecorrente.setHorarioFinal(vigencia.getHorarioFinal());
+				compromissoRecorrenteRepository.save(compromissoRecorrente);
+				count++;
 			}
+			cal.add(Calendar.DAY_OF_MONTH, 1);
 		} 
 		
+	}
+
+
+	public void excluirTodosCompromissosDiarios() {
+		
+		compromissoRecorrenteRepository.deleteAll();
 	}
 }

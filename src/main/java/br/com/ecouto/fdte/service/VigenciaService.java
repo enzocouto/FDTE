@@ -16,7 +16,11 @@ public class VigenciaService {
 
     
 	@Autowired
-	VigenciaRepository repository;
+	VigenciaRepository vigenciaRepository;
+	
+	@Autowired
+	CompromissoRecorrenteService compromissoRecorrenteService;
+	
 	
 	public Mensagem inserirVigencia(Vigencia vigencia){
 		Mensagem msg = new Mensagem();
@@ -24,43 +28,64 @@ public class VigenciaService {
 		Date dtFinalVigencia = vigencia.getDtFinalVigencia();
 		if(dtInicioVigencia.after(dtFinalVigencia)) {
 			msg.setTipo(TipoMensagem.DATA_INICIO_MAIOR_FIM);
-			msg.setMensagem("data de inicio de vigencia não pode ser maior que fim de vigencia");
+			msg.setMensagem("Data de inicio de vigência não pode ser maior que fim de vigência");
 		}else {
-			Long count = repository.count();
+			Long count = vigenciaRepository.count();
 			count++;
 			vigencia.setId(count);	
-			repository.save(vigencia);
+			vigenciaRepository.insert(vigencia);
 			msg.setTipo(TipoMensagem.SUCESSO);
-			msg.setMensagem("Vigencia inserida com sucesso");
+			msg.setMensagem("Vigência inserida com sucesso");
+			compromissoRecorrenteService.gerarCompromissoRecorrente(vigencia);
 		}
 		return msg;
 	}
 	
 	
-	public Vigencia alterarVigencia(Vigencia vigencia){
+	public Mensagem alterarVigencia(Vigencia vigencia){
+		Mensagem msg = new Mensagem();
+		Vigencia vigenciaCadastrada =  vigenciaRepository.findById(vigencia.getId());
+		if(vigenciaCadastrada == null) {
+			msg.setTipo(TipoMensagem.ERRO);
+			msg.setMensagem("Não existe a Vigencia que deseja alterar");
+		}else {
+			vigenciaRepository.save(vigencia);	
+			//Excluir os compromissos diarios para consisti-los de acordo a nova vigencia 
+			compromissoRecorrenteService.excluirTodosCompromissosDiarios();
+			compromissoRecorrenteService.gerarCompromissoRecorrente(vigencia);
+		}
+		return msg;
 		
-		return repository.save(vigencia);	
 	}
 	
     public Mensagem excluirVigenciaByID(Long id){
     	Mensagem msg = new Mensagem();
     	Vigencia consultaByID = consultaVigenciaByID(id);
-		repository.delete(consultaByID);	
-		msg.setTipo(TipoMensagem.SUCESSO);
-		msg.setMensagem("Registro de vigencia excluido com sucesso!");
+    	if(consultaByID == null) {
+    		msg.setTipo(TipoMensagem.ERRO);
+    		msg.setMensagem("Vigencia não existe!");
+    	}else {
+    		vigenciaRepository.delete(consultaByID);	
+    		compromissoRecorrenteService.excluirTodosCompromissosDiarios();
+			compromissoRecorrenteService.gerarCompromissoRecorrente(null);
+    		msg.setTipo(TipoMensagem.SUCESSO);
+    		msg.setMensagem("Registro de vigencia excluido com sucesso!");
+    	}
+		
+	
 		return msg;
 	}
     
     public Vigencia consultaVigenciaByID(Long id){
 	
-		Vigencia findOne = repository.findById(id);
+		Vigencia findOne = vigenciaRepository.findById(id);
 		return findOne;
 	}   
 	
     
 	public List<Vigencia> listarTodasVigencias(){
 		
-		return repository.findAll();
+		return vigenciaRepository.findAll();
 		
 	}
 	

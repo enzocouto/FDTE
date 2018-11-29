@@ -12,17 +12,12 @@ public class Vigencia {
 
 	@Id
 	private Long id;
-	
-	@JsonFormat(pattern = "dd/MM/yyyy")
 	private Date dtInicioVigencia;
-	@JsonFormat(pattern = "dd/MM/yyyy")
 	private Date dtFinalVigencia;
 	@JsonFormat(pattern = "HH:mm")
 	private Date horarioInicio;
 	@JsonFormat(pattern = "HH:mm")
 	private Date horarioFinal;
-	
-	
 	public Long getId() {
 		return id;
 	}
@@ -32,12 +27,14 @@ public class Vigencia {
 	public Date getDtInicioVigencia() {
 		return dtInicioVigencia;
 	}
+	
 	public void setDtInicioVigencia(Date dtInicioVigencia) {
 		this.dtInicioVigencia = dtInicioVigencia;
 	}
 	public Date getDtFinalVigencia() {
 		return dtFinalVigencia;
 	}
+	
 	public void setDtFinalVigencia(Date dtFinalVigencia) {
 		this.dtFinalVigencia = dtFinalVigencia;
 	}
@@ -53,6 +50,5 @@ public class Vigencia {
 	public void setHorarioFinal(Date horarioFinal) {
 		this.horarioFinal = horarioFinal;
 	}
-	
 	
 }

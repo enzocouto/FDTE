@@ -19,7 +19,6 @@ public class CompromissoRecorrenteController {
 	
 	@RequestMapping(value = "/compromisso/recorrente", method = RequestMethod.POST)
 	public Mensagem gerarCompromissoRecorrente() {
-
-		return service.gerarCompromissoRecorrente();
+		return service.gerarCompromissoRecorrente(null);
 	}
 }
