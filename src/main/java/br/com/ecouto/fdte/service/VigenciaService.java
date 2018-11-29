@@ -14,14 +14,14 @@ import br.com.ecouto.fdte.utils.TipoMensagem;
 @Service
 public class VigenciaService {
 
-    
+
 	@Autowired
 	VigenciaRepository vigenciaRepository;
-	
+
 	@Autowired
 	CompromissoRecorrenteService compromissoRecorrenteService;
-	
-	
+
+
 	public Mensagem inserirVigencia(Vigencia vigencia){
 		Mensagem msg = new Mensagem();
 		Date dtInicioVigencia = vigencia.getDtInicioVigencia();
@@ -35,7 +35,7 @@ public class VigenciaService {
 			msg.setTipo(TipoMensagem.INTERVALOS_CONFLITANTES);
 			msg.setMensagem("Verifique os intervalos de horários.");
 		}
-		
+
 		Long count = vigenciaRepository.count();
 		count++;
 		vigencia.setId(count);	
@@ -43,10 +43,10 @@ public class VigenciaService {
 		msg.setTipo(TipoMensagem.SUCESSO);
 		msg.setMensagem("Vigência inserida com sucesso");
 		compromissoRecorrenteService.gerarCompromissoRecorrente(vigencia);
-		
+
 		return msg;
 	}
-	
+
 	/*
 	 * Valida os intervalos de horarios conflitantes 
 	 */
@@ -54,13 +54,13 @@ public class VigenciaService {
 		boolean temConflitos = false;
 		List<Vigencia> lista = vigenciaRepository.findAll();
 		for(Vigencia vig : lista) {
-             if(vigencia.getDtInicioVigencia().after(vig.getDtInicioVigencia()) && 
-            		 vigencia.getDtFinalVigencia().before(vig.getDtFinalVigencia())) {
-            	     if(vigencia.getHorarioInicio().after(vig.getHorarioInicio()) && vigencia.getHorarioInicio().before(vig.getHorarioFinal()))
-            	    	 temConflitos = true;
-             } 
+			if(vigencia.getDtInicioVigencia().after(vig.getDtInicioVigencia()) && 
+					vigencia.getDtFinalVigencia().before(vig.getDtFinalVigencia())) {
+				if(vigencia.getHorarioInicio().after(vig.getHorarioInicio()) && vigencia.getHorarioInicio().before(vig.getHorarioFinal()))
+					temConflitos = true;
+			} 
 		}
-		
+
 		return temConflitos;
 	}
 
@@ -71,46 +71,54 @@ public class VigenciaService {
 		if(vigenciaCadastrada == null) {
 			msg.setTipo(TipoMensagem.ERRO);
 			msg.setMensagem("Não existe a Vigencia que deseja alterar");
-		}else {
-			vigenciaRepository.save(vigencia);	
-			//Excluir os compromissos diarios para consisti-los de acordo a nova vigencia 
-			compromissoRecorrenteService.excluirTodosCompromissosDiarios();
-			compromissoRecorrenteService.gerarCompromissoRecorrente(vigencia);
+			return msg;
 		}
+
+		if(temIntervalosConflitantes(vigencia)) {
+			msg.setTipo(TipoMensagem.INTERVALOS_CONFLITANTES);
+			msg.setMensagem("Verifique os intervalos de horários.");
+			return msg;
+		}
+
+		vigenciaRepository.save(vigencia);	
+		//Excluir os compromissos diarios para consisti-los de acordo a nova vigencia 
+		compromissoRecorrenteService.excluirTodosCompromissosDiarios();
+		compromissoRecorrenteService.gerarCompromissoRecorrente(vigencia);
+
 		return msg;
-		
+
 	}
-	
-    public Mensagem excluirVigenciaByID(Long id){
-    	Mensagem msg = new Mensagem();
-    	Vigencia consultaByID = consultaVigenciaByID(id);
-    	if(consultaByID == null) {
-    		msg.setTipo(TipoMensagem.ERRO);
-    		msg.setMensagem("Vigencia não existe!");
-    	}else {
-    		vigenciaRepository.delete(consultaByID);	
-    		compromissoRecorrenteService.excluirTodosCompromissosDiarios();
+
+	public Mensagem excluirVigenciaByID(Long id){
+		Mensagem msg = new Mensagem();
+		Vigencia consultaByID = consultaVigenciaByID(id);
+		if(consultaByID == null) {
+			msg.setTipo(TipoMensagem.ERRO);
+			msg.setMensagem("Vigencia não existe!");
+		}else {
+			vigenciaRepository.delete(consultaByID);	
+			compromissoRecorrenteService.excluirTodosCompromissosDiarios();
 			compromissoRecorrenteService.gerarCompromissoRecorrente(null);
-    		msg.setTipo(TipoMensagem.SUCESSO);
-    		msg.setMensagem("Registro de vigencia excluido com sucesso!");
-    	}
-		
-	
+			msg.setTipo(TipoMensagem.SUCESSO);
+			msg.setMensagem("Registro de vigencia excluido com sucesso!");
+		}
+
+
 		return msg;
 	}
-    
-    public Vigencia consultaVigenciaByID(Long id){
-	
+
+	public Vigencia consultaVigenciaByID(Long id){
+
 		Vigencia findOne = vigenciaRepository.findById(id);
 		return findOne;
 	}   
-	
-    
+
+
 	public List<Vigencia> listarTodasVigencias(){
-		
+
 		return vigenciaRepository.findAll();
-		
+
 	}
-	
-	
+
+
 }
