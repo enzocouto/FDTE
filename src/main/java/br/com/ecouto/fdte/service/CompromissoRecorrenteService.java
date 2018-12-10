@@ -44,7 +44,7 @@ public class CompromissoRecorrenteService {
 			Date dtInicio = calendar.getTime();
 			
 			//Gerar compromisso recorrente
-		    gerar(dtInicio,vigencia);
+			gerarCompromissosDiarios(dtInicio,vigencia);
 		    msg.setTipo(TipoMensagem.SUCESSO);
 			msg.setMensagem("Compromissos recorrentes gerados com sucesso");
 		}
@@ -52,8 +52,10 @@ public class CompromissoRecorrenteService {
 		return msg;
 	}
 
-
-	private void gerar(Date dtInicio, Vigencia vigencia) {
+    /*
+     * Gerar Compromissos Diarios
+     */
+	private void gerarCompromissosDiarios(Date dtInicio, Vigencia vigencia) {
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		Date dtInicioVigencia = vigencia.getDtInicioVigencia();
@@ -66,6 +68,7 @@ public class CompromissoRecorrenteService {
 		//Gerar compromissos para os proximos 30 dias
 		for(int i = 0; i < 30; i++){
 			if(cal.getTime().after(dtInicioVigencia) && cal.getTime().before(dtFinalVigencia)) {
+				count++;
 				System.out.println("criando compromisso para:"+sdf.format(cal.getTime()));	
 				CompromissoRecorrente compromissoRecorrente = new CompromissoRecorrente();
 				compromissoRecorrente.setId(count);
@@ -73,11 +76,61 @@ public class CompromissoRecorrenteService {
 				compromissoRecorrente.setHorarioInicio(vigencia.getHorarioInicio());
 				compromissoRecorrente.setHorarioFinal(vigencia.getHorarioFinal());
 				compromissoRecorrenteRepository.save(compromissoRecorrente);
-				count++;
+				
 			}
 			cal.add(Calendar.DAY_OF_MONTH, 1);
 		} 
 		
+	}
+	
+	/*
+     * Gerar Compromissos faltantes
+     */
+	public Mensagem gerarCompromissosFantantes() {
+		
+		Mensagem msg = new Mensagem();
+		Calendar cal = Calendar.getInstance();
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		if(vigenciaRepository.count() == 0) {
+			msg.setTipo(TipoMensagem.ERRO);
+		    msg.setMensagem("Não existe vigencia cadastrada");
+		    return msg;
+		}
+		Vigencia vigencia = vigenciaRepository.findById(vigenciaRepository.count());
+		
+		
+		//calcular a data do ultimo compromisso gerado
+		long ultimoGerado = compromissoRecorrenteRepository.count();
+		CompromissoRecorrente ultimoCompromisso = compromissoRecorrenteRepository.findById(ultimoGerado);
+		cal.setTime(ultimoCompromisso.getDataCompromisso());
+		cal.set(Calendar.HOUR, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 1);
+		Date dtInicio = cal.getTime();
+		
+		//Calcular data para os dias faltantes
+		cal.setTime(new Date());
+		cal.add(Calendar.DAY_OF_MONTH, 30);
+		cal.set(Calendar.HOUR, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		Date dtFinal = cal.getTime();
+		
+		//retorna para o ultimo dia gerado, sera acrescido 1 dia até chegar na ultima data dos dias faltantes
+		cal.setTime(dtInicio);
+		while(cal.getTime().before(dtFinal)) {
+			cal.add(Calendar.DAY_OF_MONTH, 1);
+			System.out.println("criando compromisso para:"+sdf.format(cal.getTime()));	
+			CompromissoRecorrente compromissoRecorrente = new CompromissoRecorrente();
+			compromissoRecorrente.setId(++ultimoGerado);
+			compromissoRecorrente.setDataCompromisso(cal.getTime());
+			compromissoRecorrente.setHorarioInicio(vigencia.getHorarioInicio());
+			compromissoRecorrente.setHorarioFinal(vigencia.getHorarioFinal());
+			compromissoRecorrenteRepository.save(compromissoRecorrente);
+		}
+		msg.setTipo(TipoMensagem.SUCESSO);
+		msg.setMensagem("Registros faltantes gerados com sucesso");
+		return msg;
 	}
 
 

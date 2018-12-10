@@ -2,6 +2,8 @@ package br.com.ecouto.fdte.model;
 
 import java.util.Date;
 
+import javax.validation.constraints.NotNull;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -12,12 +14,19 @@ public class Vigencia {
 
 	@Id
 	private Long id;
+	@NotNull
 	private Date dtInicioVigencia;
+	@NotNull
 	private Date dtFinalVigencia;
+	
 	@JsonFormat(pattern = "HH:mm")
+	@NotNull
 	private Date horarioInicio;
+	
 	@JsonFormat(pattern = "HH:mm")
+	@NotNull
 	private Date horarioFinal;
+	
 	public Long getId() {
 		return id;
 	}

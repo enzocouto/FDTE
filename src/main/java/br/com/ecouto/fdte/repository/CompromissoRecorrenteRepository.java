@@ -6,4 +6,5 @@ import br.com.ecouto.fdte.model.CompromissoRecorrente;
 
 public interface CompromissoRecorrenteRepository extends MongoRepository<CompromissoRecorrente, String> {
 
+	CompromissoRecorrente findById(Long Id);
 }

@@ -7,4 +7,5 @@ import br.com.ecouto.fdte.model.Vigencia;
 public interface VigenciaRepository extends MongoRepository<Vigencia, String> {
 
 	Vigencia findById(Long Id);
+	
 }

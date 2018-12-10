@@ -29,19 +29,42 @@ public class VigenciaService {
 		if(dtInicioVigencia.after(dtFinalVigencia)) {
 			msg.setTipo(TipoMensagem.DATA_INICIO_MAIOR_FIM);
 			msg.setMensagem("Data de inicio de vigência não pode ser maior que fim de vigência");
-		}else {
-			Long count = vigenciaRepository.count();
-			count++;
-			vigencia.setId(count);	
-			vigenciaRepository.insert(vigencia);
-			msg.setTipo(TipoMensagem.SUCESSO);
-			msg.setMensagem("Vigência inserida com sucesso");
-			compromissoRecorrenteService.gerarCompromissoRecorrente(vigencia);
+			return msg;
 		}
+		if(temIntervalosConflitantes(vigencia)) {
+			msg.setTipo(TipoMensagem.INTERVALOS_CONFLITANTES);
+			msg.setMensagem("Verifique os intervalos de horários.");
+		}
+		
+		Long count = vigenciaRepository.count();
+		count++;
+		vigencia.setId(count);	
+		vigenciaRepository.insert(vigencia);
+		msg.setTipo(TipoMensagem.SUCESSO);
+		msg.setMensagem("Vigência inserida com sucesso");
+		compromissoRecorrenteService.gerarCompromissoRecorrente(vigencia);
+		
 		return msg;
 	}
 	
-	
+	/*
+	 * Valida os intervalos de horarios conflitantes 
+	 */
+	private boolean temIntervalosConflitantes(Vigencia vigencia) {
+		boolean temConflitos = false;
+		List<Vigencia> lista = vigenciaRepository.findAll();
+		for(Vigencia vig : lista) {
+             if(vigencia.getDtInicioVigencia().after(vig.getDtInicioVigencia()) && 
+            		 vigencia.getDtFinalVigencia().before(vig.getDtFinalVigencia())) {
+            	     if(vigencia.getHorarioInicio().after(vig.getHorarioInicio()) && vigencia.getHorarioInicio().before(vig.getHorarioFinal()))
+            	    	 temConflitos = true;
+             } 
+		}
+		
+		return temConflitos;
+	}
+
+
 	public Mensagem alterarVigencia(Vigencia vigencia){
 		Mensagem msg = new Mensagem();
 		Vigencia vigenciaCadastrada =  vigenciaRepository.findById(vigencia.getId());

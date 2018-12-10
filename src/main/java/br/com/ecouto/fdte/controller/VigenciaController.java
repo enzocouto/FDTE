@@ -2,7 +2,10 @@ package br.com.ecouto.fdte.controller;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.ecouto.fdte.model.Mensagem;
 import br.com.ecouto.fdte.model.Vigencia;
 import br.com.ecouto.fdte.service.VigenciaService;
+import br.com.ecouto.fdte.utils.TipoMensagem;
 
 @RestController
 public class VigenciaController {
@@ -20,13 +24,18 @@ public class VigenciaController {
 	VigenciaService service;
 
 	@RequestMapping(value = "/vigencia", method = RequestMethod.POST)
-	public Mensagem inserirVigencia(@RequestBody Vigencia vigencia) {
-
+	public Mensagem inserirVigencia(@Valid @RequestBody Vigencia vigencia,BindingResult bindingResults) {
+        if(bindingResults.hasErrors()) {
+        	Mensagem msg = new Mensagem();
+        	msg.setTipo(TipoMensagem.ERRO);
+        	msg.setMensagem(bindingResults.toString());
+        	return msg;
+        }
 		return service.inserirVigencia(vigencia);
 	}
 	
 	@RequestMapping(value = "/vigencia", method = RequestMethod.PUT)
-	public Mensagem alterarVigencia(@RequestBody Vigencia vigencia) { 
+	public Mensagem alterarVigencia(@Valid @RequestBody Vigencia vigencia) { 
 
 		return service.alterarVigencia(vigencia);
 	}	

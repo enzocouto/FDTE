@@ -29,4 +29,10 @@ public class CompromissoRecorrenteController {
 	public Mensagem gerarCompromissoRecorrente() {
 		return service.gerarCompromissoRecorrente(null);
 	}
+	
+	@RequestMapping(value = "/compromisso/recorrente", method = RequestMethod.PUT)
+	public Mensagem gerarCompromissosFantantes() {
+		return service.gerarCompromissosFantantes();
+	}
+	
 }
